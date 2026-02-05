@@ -1,8 +1,7 @@
 {
-  "name": "Virtual VLM",
+  "name": "VLM",
   "short_name": "VLM",
   "start_url": "./",
-  "scope": "./",
   "display": "standalone",
   "background_color": "#0b1220",
   "theme_color": "#0b1220",

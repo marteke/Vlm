@@ -2,691 +2,505 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="theme-color" content="#0b1220" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Virtual VLM - Trays</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Virtual VLM — Trays (2 photos per tray)</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b1220">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="VLM">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
   <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-    body { margin: 0; background:#0b1220; color:#e8eefc; }
-    header { padding:16px 18px; border-bottom:1px solid rgba(255,255,255,.08); position:sticky; top:0; background:#0b1220; z-index:10;}
-    h1 { margin:0; font-size:18px; letter-spacing:.2px; }
-    .wrap { max-width: 980px; margin: 0 auto; padding: 16px; }
-    .grid { display:grid; grid-template-columns: 1fr; gap:12px; }
-    @media (min-width: 900px){ .grid { grid-template-columns: 1.1fr .9fr; } }
-    .card { background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:14px; box-shadow: 0 8px 28px rgba(0,0,0,.25); }
-    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .row > * { flex: 1 1 auto; }
-    label { font-size:12px; opacity:.9; display:block; margin-bottom:6px; }
-    input[type="text"], input[type="number"], textarea {
-      width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.25); color:#e8eefc; outline:none;
+    :root{
+      --bg:#0b1220; --card:#121b2f; --card2:#0f172a; --txt:#e5e7eb; --muted:#a1a1aa;
+      --line:rgba(255,255,255,.12); --btn:#1f2a44; --btn2:#253255; --ok:#16a34a; --bad:#ef4444;
+      --accent:#22c55e;
     }
-    textarea { min-height: 64px; resize: vertical; }
-    input[type="file"] { width:100%; }
-    button {
-      padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.14);
-      background: rgba(76,144,255,.20); color:#e8eefc; cursor:pointer;
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: -apple-system,system-ui,Segoe UI,Roboto,Arial;
+      background:linear-gradient(180deg,var(--bg),#070b14);
+      color:var(--txt);
+      padding:16px 14px 40px;
     }
-    button:hover { background: rgba(76,144,255,.28); }
-    button.danger { background: rgba(255,76,76,.18); }
-    button.danger:hover { background: rgba(255,76,76,.26); }
-    .hint { font-size:12px; opacity:.8; line-height:1.35; }
-    .kpi { font-size:12px; opacity:.85; }
-    .pill { display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border-radius:999px;
-            background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); }
-    .viewer { display:grid; gap:12px; grid-template-columns: 1fr; }
-    @media (min-width: 700px){ .viewer { grid-template-columns: 1fr 1fr; } }
-    figure { margin:0; border-radius:14px; overflow:hidden; border:1px solid rgba(255,255,255,.10); background: rgba(0,0,0,.25); }
-    figure img { width:100%; height: 340px; object-fit: contain; display:block; background:#060a12; }
-    figcaption { padding:10px 12px; font-size:12px; opacity:.85; border-top:1px solid rgba(255,255,255,.08); }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-    .small { font-size: 12px; opacity:.85; }
-    .list { margin-top:10px; max-height: 240px; overflow:auto; border-radius: 12px; border:1px solid rgba(255,255,255,.10);}
-    .list-item { display:flex; justify-content:space-between; gap:10px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.06); }
-    .list-item:last-child { border-bottom:none; }
-    .list-item button { flex:0 0 auto; padding:6px 10px; }
-    .toast { margin-top:10px; padding:10px 12px; border-radius:12px; background: rgba(0,0,0,.25); border:1px solid rgba(255,255,255,.10); }
-  
-    /* Zoom modal */
-    .zoom-modal{
-      position:fixed; inset:0; display:none; align-items:center; justify-content:center;
-      background: rgba(0,0,0,.82); z-index:9999; padding: 14px;
+    h1{font-size:20px;margin:4px 0 2px}
+    .sub{color:var(--muted); font-size:13px; margin-bottom:12px}
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .btn{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,var(--btn),var(--btn2));
+      color:var(--txt);
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:14px;
+      cursor:pointer;
     }
-    .zoom-modal.open{ display:flex; }
-    .zoom-modal img{
-      max-width: 95vw; max-height: 85vh; object-fit: contain;
-      border-radius: 14px; border:1px solid rgba(255,255,255,.12);
-      background:#05070d;
+    .btn:active{transform:translateY(1px)}
+    .card{
+      margin-top:14px;
+      background:rgba(18,27,47,.85);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      backdrop-filter: blur(8px);
     }
-    .zoom-close{
-      position: fixed; top: 14px; right: 14px;
-      padding: 10px 12px; border-radius: 12px;
-      background: rgba(255,255,255,.12);
-      border:1px solid rgba(255,255,255,.18);
+    .card h2{margin:0 0 10px; font-size:16px}
+    label{display:block; font-size:13px; color:var(--muted); margin:10px 0 6px}
+    input, textarea{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(15,23,42,.65);
+      color:var(--txt);
+      outline:none;
+      font-size:15px;
     }
-    .zoom-caption{
-      position: fixed; bottom: 14px; left: 14px; right: 14px;
-      padding: 10px 12px; border-radius: 12px;
-      background: rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.12);
-      font-size: 12px; opacity: .92;
-      text-align:center;
+    textarea{min-height:76px; resize:vertical}
+    .mini{font-size:12px;color:var(--muted);margin-top:8px}
+    .statusbar{display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap}
+    .pill{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(15,23,42,.55);
+      color:var(--muted);
+      font-size:13px;
     }
-    figure img{ cursor: zoom-in; }
-    
+    .pill.ok{color:#bbf7d0;border-color:rgba(34,197,94,.35)}
+    .pill.bad{color:#fecaca;border-color:rgba(239,68,68,.35)}
+    details{margin-top:10px}
+    summary{cursor:pointer; color:var(--txt)}
+    table{width:100%; border-collapse:collapse; margin-top:10px}
+    th,td{border-bottom:1px solid rgba(255,255,255,.08); padding:8px 6px; font-size:14px}
+    td a{color:#93c5fd}
+    .thumbs{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    .thumb{
+      width:min(260px,48%);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:14px;
+      overflow:hidden;
+      background:#081022;
+    }
+    .thumb img{width:100%; display:block}
+    .thumb .cap{padding:8px 10px; font-size:12px; color:var(--muted)}
+    .grid2{display:grid; grid-template-columns:1fr; gap:10px}
+    @media (min-width:720px){ .grid2{grid-template-columns:1fr 1fr} }
+    .noteBox{
+      border:1px dashed rgba(255,255,255,.22);
+      background:rgba(2,6,23,.35);
+      border-radius:14px;
+      padding:12px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+    }
+    .zoom{
+      position:fixed; inset:0; background:rgba(0,0,0,.82);
+      display:none; align-items:center; justify-content:center; padding:18px;
+      z-index:9999;
+    }
+    .zoom img{max-width:100%; max-height:100%; border-radius:14px; border:1px solid rgba(255,255,255,.18)}
+    .zoom .close{
+      position:fixed; top:14px; right:14px;
+      width:42px; height:42px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.22);
+      background:rgba(15,23,42,.75);
+      color:var(--txt); font-size:22px; line-height:40px; text-align:center;
+      cursor:pointer;
+    }
+    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; padding:2px 6px; border:1px solid rgba(255,255,255,.18); border-radius:6px; background:rgba(255,255,255,.06)}
   </style>
 </head>
 <body>
-<header>
-  <div class="wrap row" style="align-items:flex-end">
-    <div style="flex: 2 1 420px;">
-      <h1>Virtual VLM — Trays (2 photos per tray)</h1>
-      <div class="small">Runs offline. Saves photos in your browser (IndexedDB).</div>
-    </div>
-    <div class="row" style="justify-content:flex-end; gap:8px; flex: 1 1 320px;">
-      <button id="btnExport">Export backup (.json)</button>
-      <button id="btnImport">Import backup</button>
-      <input id="importFile" type="file" accept="application/json" hidden />
-    </div>
+  <h1>Virtual VLM — Trays (2 photos per tray)</h1>
+  <div class="sub">
+    Hybrid mode (iPhone-friendly): stores <b>preview images + tray data</b> in the app, while your <b>original photos stay in your iPhone Photos</b>.
+    Use the caption trick below to find originals instantly.
   </div>
-</header>
 
-<main class="wrap">
-  <div class="grid">
-
-    <section class="card">
-      <h2 style="margin:0 0 10px 0; font-size:16px;">Find tray</h2>
-      <div class="row">
-        <div style="flex:2 1 320px;">
-          <label>Tray number</label>
-          <input id="searchTray" type="text" placeholder="e.g., 102 or TR-102" />
-        </div>
-        <div style="flex:1 1 160px;">
-          <label>&nbsp;</label>
-          <button id="btnFind">Show</button>
-        </div>
-      </div>
-      <div class="row" style="margin-top:10px;">
-        <div class="pill kpi"><span>Trays saved:</span> <b id="countTrays">0</b></div>
-        <div class="pill kpi"><span>Status:</span> <span id="status" class="mono">OK</span></div>
-      </div>
-
-      <div id="viewerArea" style="margin-top:14px; display:none;">
-        <div class="row" style="align-items:flex-start;">
-          <div style="flex:2 1 380px;">
-            <div class="pill"><b>Tray:</b> <span id="viewTray" class="mono"></span></div>
-          </div>
-          <div class="row" style="flex:1 1 260px; justify-content:flex-end;">
-            <button id="btnLoadToEdit">Edit this tray</button>
-            <button id="btnDeleteTray" class="danger">Delete</button>
-          </div>
-        </div>
-        <div class="viewer" style="margin-top:12px;">
-          <figure>
-            <img id="img1" alt="Photo 1" />
-            <figcaption id="cap1">Photo 1</figcaption>
-          </figure>
-          <figure>
-            <img id="img2" alt="Photo 2" />
-            <figcaption id="cap2">Photo 2</figcaption>
-          </figure>
-        </div>
-
-        <!-- Zoom modal -->
-        <div id="zoomModal" class="zoom-modal" aria-hidden="true">
-          <button id="zoomClose" class="zoom-close" title="Close">✕</button>
-          <img id="zoomImg" alt="Zoom" />
-          <div id="zoomCaption" class="zoom-caption"></div>
-        </div>
-
-        <div class="toast" style="margin-top:12px;">
-          <div style="font-weight:600; margin-bottom:6px;">Notes (optional)</div>
-          <div id="viewNotes" class="small" style="white-space:pre-wrap;"></div>
-          <div class="small" style="margin-top:8px; opacity:.75;">
-            Last updated: <span id="viewUpdated" class="mono"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="list">
-        <div class="list-item" style="opacity:.85;">
-          <div><b>Quick list</b> (click to open)</div>
-          <div class="mono">#</div>
-        </div>
-        <div id="trayList"></div>
-      </div>
-
-      <div class="hint" style="margin-top:10px;">
-        Tip: you can type “102”, “TR-102”, “tray 102”… the app normalizes and searches by the number/text.
-      </div>
-    </section>
-
-    <section class="card">
-      <h2 style="margin:0 0 10px 0; font-size:16px;">Add / Update tray</h2>
-
-      <div class="row">
-        <div style="flex: 1 1 220px;">
-          <label>Tray number</label>
-          <input id="editTray" type="text" placeholder="e.g., 102" />
-        </div>
-        <div style="flex: 1 1 220px;">
-          <label>Label (optional)</label>
-          <input id="editLabel" type="text" placeholder="e.g., Aisle 3 / Rack B" />
-        </div>
-      </div>
-
-      <div style="margin-top:10px;">
-        <label>Photo 1 (e.g., front view)</label>
-        <input id="file1" type="file" accept="image/*" />
-      </div>
-      <div style="margin-top:10px;">
-        <label>Photo 2 (e.g., top view)</label>
-        <input id="file2" type="file" accept="image/*" />
-      </div>
-
-      <div style="margin-top:10px;">
-        <label>Notes (optional)</label>
-        <textarea id="editNotes" placeholder="e.g., connectors, cables, special labels..."></textarea>
-      </div>
-
-      <div class="row" style="margin-top:12px;">
-        <button id="btnSave" style="flex:1 1 200px;">Save tray</button>
-        <button id="btnClear" style="flex:1 1 200px;">Clear</button>
-      </div>
-
-      <div class="hint" style="margin-top:10px;">
-        Important: photos are saved in this device’s browser. To use the same data on PC and iPhone, use <b>Export</b> and <b>Import</b>.
-      </div>
-    </section>
-
+  <div class="row">
+    <button class="btn" id="exportBtn">Export backup (.json)</button>
+    <button class="btn" id="importBtn">Import backup</button>
+    <input type="file" id="importFile" accept="application/json" style="display:none" />
+    <button class="btn" id="clearBtn" title="Deletes all trays from this device">Clear all (this device)</button>
   </div>
-</main>
+
+  <div class="card">
+    <h2>Find tray</h2>
+    <label for="q">Tray number</label>
+    <input id="q" placeholder='e.g., 102 or TR-102' />
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="showBtn">Show</button>
+      <button class="btn" id="copySearchBtn" title="Copies a Photos search keyword like: TRAY 102">Copy Photos search keyword</button>
+    </div>
+    <div class="statusbar">
+      <div class="pill" id="countPill">Trays saved: 0</div>
+      <div class="pill ok" id="statusPill">Status: OK</div>
+    </div>
+
+    <details>
+      <summary><b>Quick list</b> (click to open)</summary>
+      <div id="listWrap"></div>
+    </details>
+
+    <div id="viewer" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h2>Add / Update tray</h2>
+
+    <div class="noteBox">
+      <b>Best iPhone workflow (no cloud):</b><br>
+      1) Take your photos as usual.<br>
+      2) In the Photos app, add a <b>Caption</b> like: <span class="kbd">TRAY 25</span> (or <span class="kbd">TRAY 25 TOP</span>).<br>
+      3) Here, save the tray with previews. Later, you can search Photos for <span class="kbd">TRAY 25</span> to open the <b>original</b> photos (full resolution).<br><br>
+      Tip: you can press <b>Copy Photos search keyword</b> to copy <span class="kbd">TRAY &lt;number&gt;</span>.
+    </div>
+
+    <label for="tray">Tray number</label>
+    <input id="tray" placeholder="e.g., 25 or TR-25" />
+
+    <label for="label">Label (optional)</label>
+    <input id="label" placeholder="e.g., Aisle 3 / Rack B" />
+
+    <div class="grid2">
+      <div>
+        <label>Photo 1 preview (front view)</label>
+        <input type="file" id="p1" accept="image/*" />
+        <div class="mini">Saves a preview inside the app (optimized for iPhone storage).</div>
+      </div>
+      <div>
+        <label>Photo 2 preview (top view)</label>
+        <input type="file" id="p2" accept="image/*" />
+        <div class="mini">Originals stay in your Photos; add caption like <span class="kbd">TRAY 25</span>.</div>
+      </div>
+    </div>
+
+    <label for="notes">Notes (optional)</label>
+    <textarea id="notes" placeholder="e.g., connectors, cables, special labels..."></textarea>
+
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="saveBtn">Save tray</button>
+      <button class="btn" id="deleteBtn">Delete tray</button>
+      <button class="btn" id="copyCaptionBtn" title="Copies a caption template like: TRAY 25">Copy caption template</button>
+    </div>
+
+    <div class="mini" id="saveHint"></div>
+  </div>
+
+  <div class="zoom" id="zoom">
+    <div class="close" id="zoomClose">×</div>
+    <img id="zoomImg" alt="Zoomed preview" />
+  </div>
 
 <script>
-  // ---------- Helpers ----------
-  const $ = (id) => document.getElementById(id);
-  const normKey = (s) => (s || "").trim().toLowerCase();
-  const nowISO = () => new Date().toISOString();
+/* -----------------------------
+   Storage (iPhone-friendly):
+   - Uses localStorage only
+   - Stores metadata + small previews
+------------------------------*/
+const KEY = "vlm_trays_v2_localphotos";
+function loadAll(){
+  try { return JSON.parse(localStorage.getItem(KEY) || "{}"); }
+  catch(e){ return {}; }
+}
+function saveAll(obj){
+  localStorage.setItem(KEY, JSON.stringify(obj));
+}
+function normalizeTray(s){
+  return (s||"").toString().trim().toUpperCase().replace(/\s+/g," ");
+}
+function trayNumberOnly(s){
+  // Extract digits from "TR-102", "tray 102", etc.
+  const m = (s||"").toString().match(/(\d+)/g);
+  return m ? m.join("") : "";
+}
+function makeSearchKeyword(tray){
+  const n = trayNumberOnly(tray);
+  return n ? `TRAY ${n}` : (normalizeTray(tray) || "");
+}
+function setStatus(ok, msg){
+  const pill = document.getElementById("statusPill");
+  pill.textContent = "Status: " + (msg || (ok?"OK":"ERROR"));
+  pill.classList.toggle("ok", !!ok);
+  pill.classList.toggle("bad", !ok);
+}
 
-  function extractTrayId(input) {
-    // Mantém texto, mas também tenta extrair número principal
-    const raw = (input || "").trim();
-    if (!raw) return "";
-    const m = raw.match(/(\d{1,6})/);
-    if (m) return m[1]; // usa o número como chave principal
-    return raw.replace(/\s+/g, "-").slice(0, 40);
+/* -----------------------------
+   Image preview compressor
+   - converts to JPEG dataURL
+------------------------------*/
+async function fileToPreviewDataURL(file, maxSide=1400, quality=0.78){
+  if(!file) return null;
+  const img = await createImageBitmap(file);
+  let w = img.width, h = img.height;
+  const scale = Math.min(1, maxSide / Math.max(w,h));
+  const nw = Math.max(1, Math.round(w*scale));
+  const nh = Math.max(1, Math.round(h*scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = nw; canvas.height = nh;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(img, 0, 0, nw, nh);
+
+  // JPEG reduces size vs PNG (critical for iPhone)
+  const dataUrl = canvas.toDataURL("image/jpeg", quality);
+  return { dataUrl, w:nw, h:nh, mime:"image/jpeg" };
+}
+
+function updateCount(){
+  const all = loadAll();
+  const count = Object.keys(all).length;
+  document.getElementById("countPill").textContent = `Trays saved: ${count}`;
+}
+function renderList(){
+  const all = loadAll();
+  const keys = Object.keys(all).sort((a,b)=>a.localeCompare(b, undefined, {numeric:true}));
+  const wrap = document.getElementById("listWrap");
+  if(keys.length===0){ wrap.innerHTML = `<div class="mini">No trays saved yet.</div>`; return; }
+  let html = `<table><thead><tr><th>Tray</th><th>Label</th><th>Updated</th></tr></thead><tbody>`;
+  for(const k of keys){
+    const t = all[k];
+    html += `<tr>
+      <td><a href="#" data-tray="${encodeURIComponent(k)}">${k}</a></td>
+      <td>${escapeHtml(t.label||"")}</td>
+      <td>${new Date(t.updatedAt||0).toLocaleString()}</td>
+    </tr>`;
   }
+  html += `</tbody></table>`;
+  wrap.innerHTML = html;
+  wrap.querySelectorAll("a[data-tray]").forEach(a=>{
+    a.addEventListener("click",(e)=>{
+      e.preventDefault();
+      const tray = decodeURIComponent(a.getAttribute("data-tray"));
+      document.getElementById("q").value = tray;
+      showTray(tray);
+    });
+  });
+}
 
-  function setStatus(msg) { $("status").textContent = msg; }
+function escapeHtml(s){
+  return (s||"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+}
 
-  function download(filename, text) {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([text], {type:"application/json"}));
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(a.href);
+function zoomImage(src){
+  const z = document.getElementById("zoom");
+  const zi = document.getElementById("zoomImg");
+  zi.src = src;
+  z.style.display = "flex";
+}
+function closeZoom(){
+  document.getElementById("zoom").style.display = "none";
+  document.getElementById("zoomImg").src = "";
+}
+document.getElementById("zoomClose").addEventListener("click", closeZoom);
+document.getElementById("zoom").addEventListener("click",(e)=>{ if(e.target.id==="zoom") closeZoom(); });
+document.addEventListener("keydown",(e)=>{ if(e.key==="Escape") closeZoom(); });
+
+function showTray(trayRaw){
+  const tray = normalizeTray(trayRaw);
+  const all = loadAll();
+  const t = all[tray];
+  const viewer = document.getElementById("viewer");
+  if(!tray){ viewer.innerHTML = ""; return; }
+  if(!t){
+    viewer.innerHTML = `<div class="mini">Tray <b>${escapeHtml(tray)}</b> not found.</div>`;
+    return;
   }
+  const searchKey = makeSearchKeyword(tray);
+  viewer.innerHTML = `
+    <div class="noteBox" style="margin-bottom:10px">
+      <b>Open originals in Photos:</b> search for <span class="kbd">${escapeHtml(searchKey)}</span> (because you added captions in Photos).
+    </div>
+    <div class="thumbs">
+      ${t.p1?.dataUrl ? `<div class="thumb"><img src="${t.p1.dataUrl}" alt="Photo 1 preview"><div class="cap">Photo 1 preview (tap to zoom)</div></div>` : ``}
+      ${t.p2?.dataUrl ? `<div class="thumb"><img src="${t.p2.dataUrl}" alt="Photo 2 preview"><div class="cap">Photo 2 preview (tap to zoom)</div></div>` : ``}
+    </div>
+    <div class="mini" style="margin-top:10px"><b>Label:</b> ${escapeHtml(t.label||"-")}</div>
+    <div class="mini"><b>Notes:</b> ${escapeHtml(t.notes||"-")}</div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn" id="copyKeyBtn">Copy Photos keyword</button>
+      <button class="btn" id="loadToFormBtn">Load into form</button>
+    </div>
+  `;
+  viewer.querySelectorAll(".thumb img").forEach(img=>{
+    img.style.cursor="zoom-in";
+    img.addEventListener("click",()=>zoomImage(img.src));
+  });
+  viewer.querySelector("#copyKeyBtn").addEventListener("click", async ()=>{
+    await copyText(searchKey);
+    setStatus(true, `Copied: ${searchKey}`);
+  });
+  viewer.querySelector("#loadToFormBtn").addEventListener("click", ()=>{
+    document.getElementById("tray").value = tray;
+    document.getElementById("label").value = t.label||"";
+    document.getElementById("notes").value = t.notes||"";
+    document.getElementById("saveHint").textContent = "Loaded tray data into form (previews are already saved).";
+    setStatus(true,"OK");
+    window.scrollTo({top:document.body.scrollHeight, behavior:"smooth"});
+  });
+}
 
-  // ---------- IndexedDB ----------
-  const DB_NAME = "vlm_virtual_trays";
-  const DB_VER  = 1;
-  const STORE   = "trays";
-
-  function openDB() {
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, DB_VER);
-      req.onupgradeneeded = () => {
-        const db = req.result;
-        if (!db.objectStoreNames.contains(STORE)) {
-          db.createObjectStore(STORE, { keyPath: "trayId" });
-        }
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  async function putTray(tray) {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE, "readwrite");
-      tx.objectStore(STORE).put(tray);
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => reject(tx.error);
-    });
-  }
-
-  async function getTray(trayId) {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE, "readonly");
-      const req = tx.objectStore(STORE).get(trayId);
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  async function deleteTray(trayId) {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE, "readwrite");
-      tx.objectStore(STORE).delete(trayId);
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => reject(tx.error);
-    });
-  }
-
-  async function getAllTrays() {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE, "readonly");
-      const req = tx.objectStore(STORE).getAll();
-      req.onsuccess = () => resolve(req.result || []);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  async async function readImageFile(file) {
-  // iOS/Safari friendly: compress to JPEG before saving to IndexedDB (smaller + more reliable)
-  if (!file) return null;
-
-  const MAX_W = 1600;
-  const MAX_H = 1600;
-  const QUALITY = 0.78;
-
-  try {
-    const dataUrl = await new Promise((resolve, reject) => {
-      const r = new FileReader();
-      r.onload = () => resolve(r.result);
-      r.onerror = () => reject(r.error);
-      r.readAsDataURL(file);
-    });
-
-    const img = await new Promise((resolve, reject) => {
-      const i = new Image();
-      i.onload = () => resolve(i);
-      i.onerror = reject;
-      i.src = dataUrl;
-    });
-
-    let w = img.naturalWidth || img.width;
-    let h = img.naturalHeight || img.height;
-
-    const scale = Math.min(1, MAX_W / w, MAX_H / h);
-    w = Math.max(1, Math.round(w * scale));
-    h = Math.max(1, Math.round(h * scale));
-
-    const canvas = document.createElement("canvas");
-    canvas.width = w;
-    canvas.height = h;
-    const ctx = canvas.getContext("2d", { alpha: false });
-    ctx.drawImage(img, 0, 0, w, h);
-
-    const blob = await new Promise((resolve) => {
-      canvas.toBlob((b) => resolve(b), "image/jpeg", QUALITY);
-    });
-
-    // Fallback if toBlob fails
-    if (!blob) {
-      const buf = await file.arrayBuffer();
-      const raw = new Blob([buf], { type: file.type || "image/jpeg" });
-      return { name: file.name || "photo.jpg", type: raw.type, blob: raw };
-    }
-
-    const baseName = (file.name || "photo").replace(/\.[^.]+$/, "");
-    return { name: `${baseName}.jpg`, type: blob.type, blob };
-  } catch (e) {
-    // Last-resort fallback: store raw bytes
-    const buf = await file.arrayBuffer();
-    const blob = new Blob([buf], { type: file.type || "image/jpeg" });
-    return { name: file.name || "photo.jpg", type: blob.type, blob };
+async function copyText(text){
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(e){
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    ta.remove();
   }
 }
 
-  function blobToObjectURL(blob) {
-    return URL.createObjectURL(blob);
-  }
+/* -----------------------------
+   Buttons
+------------------------------*/
+document.getElementById("showBtn").addEventListener("click",()=>{
+  showTray(document.getElementById("q").value);
+});
+document.getElementById("q").addEventListener("keydown",(e)=>{
+  if(e.key==="Enter") showTray(e.target.value);
+});
+document.getElementById("copySearchBtn").addEventListener("click", async ()=>{
+  const q = document.getElementById("q").value;
+  const key = makeSearchKeyword(q);
+  if(!key){ setStatus(false,"Type a tray number first"); return; }
+  await copyText(key);
+  setStatus(true, `Copied: ${key}`);
+});
 
-  // ---------- UI ----------
-  let currentView = null;
-  let objectUrls = [];
+document.getElementById("copyCaptionBtn").addEventListener("click", async ()=>{
+  const tray = document.getElementById("tray").value;
+  const key = makeSearchKeyword(tray);
+  if(!key){ setStatus(false,"Type a tray number first"); return; }
+  await copyText(key);
+  document.getElementById("saveHint").textContent = `Caption copied. In Photos: open photo → swipe up → Add a Caption → paste: ${key}`;
+  setStatus(true, "OK");
+});
 
-  function clearObjectURLs() {
-    objectUrls.forEach(u => URL.revokeObjectURL(u));
-    objectUrls = [];
-  }
+document.getElementById("saveBtn").addEventListener("click", async ()=>{
+  const trayRaw = document.getElementById("tray").value;
+  const tray = normalizeTray(trayRaw);
+  if(!tray){ setStatus(false,"Tray number is required"); return; }
 
-  async function refreshList() {
-    const all = await getAllTrays();
-    $("countTrays").textContent = all.length;
+  const all = loadAll();
+  const existing = all[tray] || {};
 
-    // Ordena por trayId "numérico" quando possível
-    all.sort((a,b) => {
-      const an = parseInt(a.trayId,10), bn = parseInt(b.trayId,10);
-      if (!isNaN(an) && !isNaN(bn)) return an - bn;
-      return (a.trayId||"").localeCompare(b.trayId||"");
-    });
-
-    const list = $("trayList");
-    list.innerHTML = "";
-    for (const t of all) {
-      const div = document.createElement("div");
-      div.className = "list-item";
-      const left = document.createElement("div");
-      left.innerHTML = `<div><b class="mono">${t.trayId}</b> ${t.label ? "— " + t.label : ""}</div>
-                        <div class="small" style="opacity:.75;">${t.updatedAt ? t.updatedAt : ""}</div>`;
-      const btn = document.createElement("button");
-      btn.textContent = "Abrir";
-      btn.onclick = () => { $("searchTray").value = t.trayId; showTrayByInput(); };
-      div.appendChild(left);
-      div.appendChild(btn);
-      list.appendChild(div);
-    }
-  }
-
-  async function showTray(tray) {
-    clearObjectURLs();
-    currentView = tray;
-    $("viewerArea").style.display = "block";
-    $("viewTray").textContent = tray.trayId + (tray.label ? ` (${tray.label})` : "");
-    $("viewNotes").textContent = tray.notes || "";
-    $("viewUpdated").textContent = tray.updatedAt || "";
-
-    const p1 = tray.photos?.[0]?.blob || null;
-    const p2 = tray.photos?.[1]?.blob || null;
-
-    if (p1) {
-      const u1 = blobToObjectURL(p1);
-      objectUrls.push(u1);
-      $("img1").src = u1;
-      $("cap1").textContent = tray.photos?.[0]?.name ? `Photo 1 — ${tray.photos[0].name}` : "Photo 1";
-    } else {
-      $("img1").removeAttribute("src");
-      $("cap1").textContent = "Photo 1 — (não cadastrada)";
-    }
-
-    if (p2) {
-      const u2 = blobToObjectURL(p2);
-      objectUrls.push(u2);
-      $("img2").src = u2;
-      $("cap2").textContent = tray.photos?.[1]?.name ? `Photo 2 — ${tray.photos[1].name}` : "Photo 2";
-    } else {
-      $("img2").removeAttribute("src");
-      $("cap2").textContent = "Photo 2 — (não cadastrada)";
-    }
-  }
-
-  async function showTrayByInput() {
-    const input = $("searchTray").value;
-    const trayId = extractTrayId(input);
-    if (!trayId) { setStatus("Type a tray number"); return; }
-
-    const tray = await getTray(trayId);
-    if (!tray) {
-      $("viewerArea").style.display = "none";
-      setStatus(`Not found: ${trayId}`);
-      return;
-    }
-    setStatus("OK");
-    await showTray(tray);
-  }
-
-  function fillEditorFromTray(tray) {
-    $("editTray").value = tray.trayId || "";
-    $("editLabel").value = tray.label || "";
-    $("editNotes").value = tray.notes || "";
-    // não preenche inputs file (por segurança do browser)
-    $("file1").value = "";
-    $("file2").value = "";
-    setStatus("Editor loaded (attach new photos to replace)");
-  }
-
-  function clearEditor() {
-    $("editTray").value = "";
-    $("editLabel").value = "";
-    $("editNotes").value = "";
-    $("file1").value = "";
-    $("file2").value = "";
-  }
-
-  // ---------- Actions ----------
-  $("btnFind").onclick = showTrayByInput;
-  $("searchTray").addEventListener("keydown", (e) => { if (e.key === "Enter") showTrayByInput(); });
-
-  $("btnSave").onclick = async () => {
-    try {
-
-    try {
-      const trayId = extractTrayId($("editTray").value);
-      if (!trayId) { setStatus("Enter the tray number"); return; }
-
-      const existing = await getTray(trayId);
-      const label = $("editLabel").value.trim();
-      const notes = $("editNotes").value;
-
-      const f1 = $("file1").files?.[0] || null;
-      const f2 = $("file2").files?.[0] || null;
-
-      const img1 = await readImageFile(f1);
-      const img2 = await readImageFile(f2);
-
-      const photos = [
-        img1 || existing?.photos?.[0] || null,
-        img2 || existing?.photos?.[1] || null
-      ].filter(x => true); // keep positions (may be null)
-
-      const tray = {
-        trayId,
-        label,
-        notes,
-        photos,
-        updatedAt: nowISO()
-    } catch (err) {
-      console.error(err);
-      setStatus('Save failed. On iPhone, make sure Safari is not in Private mode and that you allow website data/cookies.');
-      alert('Save failed.
-
-Most common causes on iPhone:
-- Private Browsing is ON
-- Block All Cookies/Website Data
-- Photos too large (try smaller photos)');
-    }
+  // Build record
+  const rec = {
+    tray,
+    label: document.getElementById("label").value || "",
+    notes: document.getElementById("notes").value || "",
+    updatedAt: Date.now(),
+    // Keep existing previews if user doesn't reselect files
+    p1: existing.p1 || null,
+    p2: existing.p2 || null,
   };
 
-      await putTray(tray);
-      setStatus(`Saved: ${trayId}`);
-      await refreshList();
-    } catch (err) {
-      console.error(err);
-      // Common iPhone causes: Private Browsing, blocked storage, or opening as a local file (file://)
-      setStatus("Save failed on this iPhone browser. Try: disable Private Browsing, allow cookies, and open the page via http(s) (not file://).");
-    }
-  };
+  try{
+    const f1 = document.getElementById("p1").files[0];
+    const f2 = document.getElementById("p2").files[0];
+    if(f1) rec.p1 = await fileToPreviewDataURL(f1, 1400, 0.78);
+    if(f2) rec.p2 = await fileToPreviewDataURL(f2, 1400, 0.78);
 
-    await putTray(tray);
-    setStatus(`Saved: ${trayId}`);
-    await refreshList();
-  };
+    all[tray] = rec;
+    // Attempt save
+    saveAll(all);
 
-  $("btnClear").onclick = () => { clearEditor(); setStatus("OK"); };
+    // Verify write by reading back
+    const check = loadAll();
+    if(!check[tray]) throw new Error("Write verification failed");
 
-  $("btnDeleteTray").onclick = async () => {
-    if (!currentView?.trayId) return;
-    const trayId = currentView.trayId;
-    const ok = confirm(`Delete o tray ${trayId}?`);
-    if (!ok) return;
-    await deleteTray(trayId);
-    $("viewerArea").style.display = "none";
-    currentView = null;
-    clearObjectURLs();
-    setStatus(`Deleted: ${trayId}`);
-    await refreshList();
-  };
-
-  $("btnLoadToEdit").onclick = () => {
-    if (!currentView) return;
-    fillEditorFromTray(currentView);
-  };
-
-  // Backup: exporta tudo (inclui as fotos em base64 dentro do JSON)
-  // Observação: pode ficar grande dependendo da quantidade de fotos.
-  async function exportBackup() {
-    const all = await getAllTrays();
-    // converte blobs para base64 para caber em JSON
-    async function blobToDataURL(blob) {
-      return new Promise((resolve, reject) => {
-        if (!blob) return resolve(null);
-        const r = new FileReader();
-        r.onload = () => resolve(r.result);
-        r.onerror = () => reject(r.error);
-        r.readAsDataURL(blob);
-      });
-    }
-
-    const payload = [];
-    for (const t of all) {
-      const p = [];
-      for (const ph of (t.photos || [])) {
-        if (ph?.blob) {
-          const dataUrl = await blobToDataURL(ph.blob);
-          p.push({ name: ph.name, type: ph.type, dataUrl });
-        } else {
-          p.push(null);
-        }
-      }
-      payload.push({
-        trayId: t.trayId,
-        label: t.label || "",
-        notes: t.notes || "",
-        updatedAt: t.updatedAt || "",
-        photos: p
-      });
-    }
-
-    const backup = {
-      app: "VLM Virtual Trays",
-      exportedAt: nowISO(),
-      trays: payload
-    };
-
-    download(`vlm_trays_backup_${new Date().toISOString().slice(0,10)}.json`, JSON.stringify(backup));
-    setStatus("Backup exported");
+    document.getElementById("saveHint").textContent =
+      `Saved. Tip: add Photos captions like "${makeSearchKeyword(tray)}" to find originals quickly.`;
+    setStatus(true,"OK");
+    updateCount();
+    renderList();
+    // clear file inputs (keep previews saved)
+    document.getElementById("p1").value="";
+    document.getElementById("p2").value="";
+  }catch(e){
+    console.error(e);
+    setStatus(false,"Save failed (iPhone storage). Use Export backup or reduce previews.");
+    document.getElementById("saveHint").textContent =
+      "Save failed. Try: (1) add fewer trays on this device, (2) use smaller photos, (3) rely on Export/Import backup.";
   }
+});
 
-  async function importBackup(file) {
+document.getElementById("deleteBtn").addEventListener("click",()=>{
+  const tray = normalizeTray(document.getElementById("tray").value);
+  if(!tray){ setStatus(false,"Type tray number"); return; }
+  const all = loadAll();
+  if(!all[tray]){ setStatus(false,"Tray not found"); return; }
+  delete all[tray];
+  saveAll(all);
+  setStatus(true,"Deleted");
+  updateCount();
+  renderList();
+});
+
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  const all = loadAll();
+  const blob = new Blob([JSON.stringify(all, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `vlm_backup_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  setStatus(true,"Backup exported");
+});
+
+document.getElementById("importBtn").addEventListener("click",()=>{
+  document.getElementById("importFile").click();
+});
+document.getElementById("importFile").addEventListener("change", async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
     const text = await file.text();
-    const data = JSON.parse(text);
-    const trays = data?.trays || [];
-    let count = 0;
-
-    function dataURLToBlob(dataUrl) {
-      if (!dataUrl) return null;
-      const [meta, b64] = dataUrl.split(",");
-      const mime = (meta.match(/data:(.*?);base64/) || [])[1] || "application/octet-stream";
-      const bin = atob(b64);
-      const u8 = new Uint8Array(bin.length);
-      for (let i=0; i<bin.length; i++) u8[i] = bin.charCodeAt(i);
-      return new Blob([u8], { type: mime });
-    }
-
-    for (const t of trays) {
-      const photos = (t.photos || []).map(ph => {
-        if (!ph) return null;
-        const blob = dataURLToBlob(ph.dataUrl);
-        return { name: ph.name || "foto", type: ph.type || blob?.type || "image/jpeg", blob };
-      });
-
-      await putTray({
-        trayId: t.trayId,
-        label: t.label || "",
-        notes: t.notes || "",
-        updatedAt: t.updatedAt || nowISO(),
-        photos
-      });
-      count++;
-    }
-
-    setStatus(`Imported: ${count} trays`);
-    await refreshList();
+    const obj = JSON.parse(text);
+    if(typeof obj !== "object" || obj === null) throw new Error("Invalid JSON");
+    saveAll(obj);
+    setStatus(true,"Backup imported");
+    updateCount();
+    renderList();
+  }catch(err){
+    console.error(err);
+    setStatus(false,"Import failed");
+  }finally{
+    e.target.value="";
   }
+});
 
-  $("btnExport").onclick = exportBackup;
-  $("btnImport").onclick = () => $("importFile").click();
-  $("importFile").onchange = async (e) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    try {
-      await importBackup(f);
-    } catch (err) {
-      console.error(err);
-      setStatus("Import failed (invalid file?)");
-    } finally {
-      e.target.value = "";
-    }
-  };
+document.getElementById("clearBtn").addEventListener("click",()=>{
+  if(!confirm("Delete ALL trays from this device?")) return;
+  localStorage.removeItem(KEY);
+  setStatus(true,"Cleared");
+  updateCount();
+  renderList();
+  document.getElementById("viewer").innerHTML="";
+});
 
+/* Init */
+updateCount();
+renderList();
+setStatus(true,"OK");
 
-  // --- Zoom / Fullscreen preview ---
-  function openZoom(src, caption){
-    if (!src) return;
-    $("zoomImg").src = src;
-    $("zoomCaption").textContent = caption || "";
-    $("zoomModal").classList.add("open");
-    $("zoomModal").setAttribute("aria-hidden","false");
-    document.body.style.overflow = "hidden";
-  }
-  function closeZoom(){
-    $("zoomModal").classList.remove("open");
-    $("zoomModal").setAttribute("aria-hidden","true");
-    $("zoomImg").removeAttribute("src");
-    document.body.style.overflow = "";
-  }
-
-  document.addEventListener("DOMContentLoaded", () => {
-    $("zoomClose").onclick = closeZoom;
-
-    $("img1").addEventListener("click", () => openZoom($("img1").src, $("cap1").textContent));
-    $("img2").addEventListener("click", () => openZoom($("img2").src, $("cap2").textContent));
-
-    $("zoomModal").addEventListener("click", (e) => {
-      if (e.target === $("zoomModal")) closeZoom();
-    });
-
-    document.addEventListener("keydown", (ev) => {
-      if (ev.key === "Escape") closeZoom();
-    });
+/* PWA / SW */
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
   });
-
-  // init
-  (async function init(){
-
-// Ask Safari for persistent storage when possible (reduces chances of eviction)
-try {
-  if (navigator.storage && navigator.storage.persist) {
-    const persisted = await navigator.storage.persist();
-    if (!persisted) {
-      setStatus("Note: storage is not persistent on this browser (still works, but could be cleared).");
-    }
-  }
-} catch (e) {}
-    try {
-      await refreshList();
-      setStatus("OK");
-    } catch (e) {
-      console.error(e);
-      setStatus("Error opening database");
-    }
-  })();
-    // --- PWA / Service Worker (helps iOS keep the site & data stable) ---
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js").catch(() => {});
-      });
-    }
-
+}
 </script>
 </body>
 </html>
