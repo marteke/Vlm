@@ -3,6 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0b1220" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>Virtual VLM - Trays</title>
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
@@ -284,13 +289,62 @@
     });
   }
 
-  async function readImageFile(file) {
-    // iOS compatibility: store as a plain Blob (not File) to avoid IndexedDB issues on some Safari builds
-    if (!file) return null;
+  async async function readImageFile(file) {
+  // iOS/Safari friendly: compress to JPEG before saving to IndexedDB (smaller + more reliable)
+  if (!file) return null;
+
+  const MAX_W = 1600;
+  const MAX_H = 1600;
+  const QUALITY = 0.78;
+
+  try {
+    const dataUrl = await new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
+
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = dataUrl;
+    });
+
+    let w = img.naturalWidth || img.width;
+    let h = img.naturalHeight || img.height;
+
+    const scale = Math.min(1, MAX_W / w, MAX_H / h);
+    w = Math.max(1, Math.round(w * scale));
+    h = Math.max(1, Math.round(h * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d", { alpha: false });
+    ctx.drawImage(img, 0, 0, w, h);
+
+    const blob = await new Promise((resolve) => {
+      canvas.toBlob((b) => resolve(b), "image/jpeg", QUALITY);
+    });
+
+    // Fallback if toBlob fails
+    if (!blob) {
+      const buf = await file.arrayBuffer();
+      const raw = new Blob([buf], { type: file.type || "image/jpeg" });
+      return { name: file.name || "photo.jpg", type: raw.type, blob: raw };
+    }
+
+    const baseName = (file.name || "photo").replace(/\.[^.]+$/, "");
+    return { name: `${baseName}.jpg`, type: blob.type, blob };
+  } catch (e) {
+    // Last-resort fallback: store raw bytes
     const buf = await file.arrayBuffer();
     const blob = new Blob([buf], { type: file.type || "image/jpeg" });
     return { name: file.name || "photo.jpg", type: blob.type, blob };
   }
+}
 
   function blobToObjectURL(blob) {
     return URL.createObjectURL(blob);
@@ -404,6 +458,8 @@
 
   $("btnSave").onclick = async () => {
     try {
+
+    try {
       const trayId = extractTrayId($("editTray").value);
       if (!trayId) { setStatus("Enter the tray number"); return; }
 
@@ -428,7 +484,17 @@
         notes,
         photos,
         updatedAt: nowISO()
-      };
+    } catch (err) {
+      console.error(err);
+      setStatus('Save failed. On iPhone, make sure Safari is not in Private mode and that you allow website data/cookies.');
+      alert('Save failed.
+
+Most common causes on iPhone:
+- Private Browsing is ON
+- Block All Cookies/Website Data
+- Photos too large (try smaller photos)');
+    }
+  };
 
       await putTray(tray);
       setStatus(`Saved: ${trayId}`);
@@ -596,6 +662,16 @@
 
   // init
   (async function init(){
+
+// Ask Safari for persistent storage when possible (reduces chances of eviction)
+try {
+  if (navigator.storage && navigator.storage.persist) {
+    const persisted = await navigator.storage.persist();
+    if (!persisted) {
+      setStatus("Note: storage is not persistent on this browser (still works, but could be cleared).");
+    }
+  }
+} catch (e) {}
     try {
       await refreshList();
       setStatus("OK");
@@ -604,6 +680,13 @@
       setStatus("Error opening database");
     }
   })();
+    // --- PWA / Service Worker (helps iOS keep the site & data stable) ---
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
+
 </script>
 </body>
 </html>
